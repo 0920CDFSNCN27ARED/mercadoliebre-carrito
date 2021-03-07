@@ -35,8 +35,8 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: "userId",
         });
 
-        Item.belongsTo(models.Cart, {
-            as: "cart",
+        Item.belongsTo(models.Order, {
+            as: "order",
             foreignKey: "cartId",
         });
 

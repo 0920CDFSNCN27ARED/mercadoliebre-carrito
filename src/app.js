@@ -52,6 +52,11 @@ app.use("/users", usersRouter);
 
 const apiProductsRouter = require("./routes/api/productsRouter");
 app.use("/api/products", apiProductsRouter);
+const apiOrdersRouter = require("./routes/api/ordersRouter");
+app.use("/api/orders", apiOrdersRouter);
+
+const ordersRouter = require("./routes/ordersRouter");
+app.use("/orders", ordersRouter);
 
 // ************ DON'T TOUCH FROM HERE ************
 // ************ catch 404 and forward to error handler ************

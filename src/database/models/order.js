@@ -1,26 +1,26 @@
 "use strict";
 module.exports = (sequelize, DataTypes) => {
-    const Cart = sequelize.define(
-        "Cart",
+    const Order = sequelize.define(
+        "Order",
         {
             orderNumber: DataTypes.INTEGER,
             total: DataTypes.INTEGER,
             userId: DataTypes.INTEGER,
         },
         {
-            tableName: "carts",
+            tableName: "orders",
         }
     );
-    Cart.associate = function (models) {
-        Cart.belongsTo(models.User, {
+    Order.associate = function (models) {
+        Order.belongsTo(models.User, {
             as: "user",
             foreignKey: "userId",
         });
 
-        Cart.hasMany(models.Item, {
+        Order.hasMany(models.Item, {
             as: "items",
             foreignKey: "cartId",
         });
     };
-    return Cart;
+    return Order;
 };

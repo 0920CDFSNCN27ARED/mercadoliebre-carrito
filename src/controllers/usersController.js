@@ -8,7 +8,7 @@ const {
     User,
     Product,
     Token,
-    Cart,
+    Order,
     Item,
     sequelize,
 } = require("../database/models");
@@ -183,15 +183,7 @@ module.exports = {
     },
 
     cart(req, res) {
-        Item.findAll({
-            where: {
-                userId: req.session.user.id,
-                state: 1,
-            },
-            include: ["product"],
-        }).then((items) => {
-            return res.render("users/cart", { items });
-        });
+        return res.render("users/myCart");
     },
 
     addToCart(req, res) {
@@ -248,48 +240,11 @@ module.exports = {
     },
 
     shop(req, res) {
-        let items;
-
-        // busco los items agregados al carrito
-        Item.findAll({
-            where: {
-                userId: req.session.user.id,
-                state: 1,
-            },
-        })
-            // cierro los items
-            .then((itemsSearched) => {
-                items = itemsSearched;
-                return Item.closeItems(req.session.user.id);
-            })
-            // busco el ultimo carrito creado
-            .then(() => {
-                return Cart.findOne({
-                    order: [["createdAt", "DESC"]],
-                });
-            })
-            // creo el nuevo carrito
-            .then((cart) => {
-                return Cart.create({
-                    orderNumber: cart ? ++cart.orderNumber : 1000,
-                    total: items.reduce(
-                        (total, item) => (total = total + item.subTotal),
-                        0
-                    ),
-                    userId: req.session.user.id,
-                });
-            })
-            // les asigno el id del carrito nuevo a los items no asignados
-            .then((cart) => {
-                return Item.assignItems(req.session.user.id, cart.id);
-            })
-            // redirect
-            .then(() => res.redirect("/users/history"))
-            .catch((e) => console.log(e));
+        res.render("users/shop");
     },
 
     history(req, res) {
-        Cart.findAll({
+        Order.findAll({
             where: {
                 userId: req.session.user.id,
             },
@@ -307,7 +262,7 @@ module.exports = {
     },
 
     showBuyDetail(req, res) {
-        Cart.findByPk(req.params.id, {
+        Order.findByPk(req.params.id, {
             include: {
                 all: true,
                 nested: true,

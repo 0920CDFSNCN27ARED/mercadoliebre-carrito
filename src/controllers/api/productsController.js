@@ -71,4 +71,9 @@ module.exports = {
             data: products,
         });
     },
+
+    getProduct: async (req, res) => {
+        const product = await Product.findByPk(req.params.id);
+        res.send(product);
+    },
 };

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<!-- Include Head -->
+<%- include('../partials/head', {title: 'Carrito', image: ''}) %>
+
+<body>
+    <!-- Header -->
+    <%- include('../partials/headerNavbar') %>
+    <!-- /Header -->
+
+    <div class="container products-wrapper">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="products-title">Carrito de compras</h1>
+            </div>
+        </div>
+        <div id="product-detail" class="product-detail">
+            <div class="row">
+                <div id="products-list" class="col-12 col-lg-8 pt-4">
+
+
+
+                </div>
+                <div class="col-12 col-lg-4">
+                    <article class="product-detail-info">
+                        <h2 class="product-detail-title">
+                            Total: $<span id="price-total"></span>
+                        </h2>
+                        <hr>
+
+                        <form id="comprar-form" method="POST" style="display: inline-bock">
+                            <input type="hidden" name="userId" value="">
+                            <button style="display: inline-block; width: 100%;" type="submit"
+                                class="mt-4 buy-now-button">COMPRAR</button>
+                        </form>
+                        <hr>
+
+                    </article>
+                </div>
+            </div>
+        </div>
+        <div id="empty-cart" class="col-12">
+            <h2 class="products-title" style="padding: 100px 0; color: tomato;">Todavia no agregaste productos al
+                carrito</h2>
+        </div>
+    </div>
+
+    <!-- footer -->
+    <%- include('../partials/footer') %>
+    <!-- /footer -->
+
+
+    <script>
+        const localStorageKey = "mercadoliebre-cart";
+        const localStorageValue = localStorage.getItem(localStorageKey);
+        const cart = localStorageValue ? JSON.parse(localStorageValue) : []
+
+        const userId = "<%= locals.user.id %>"
+
+        if (cart.length == 0) {
+            const productDetailSection = document.getElementById("product-detail");
+            productDetailSection.classList.add("d-none");
+        } else {
+            const emptyCartSection = document.getElementById("empty-cart");
+            emptyCartSection.classList.add("d-none");
+            const productList = document.getElementById("products-list");
+            const totalPriceElement = document.getElementById("price-total");
+
+            async function renderProduct(prod) {
+                const response = await fetch(`/api/products/${prod.id}`);
+                const fullProduct = await response.json();
+
+                const productElement = `
+                <div class="col-12 mt-3">
+                    <section class="row">
+                        <figure class="col-3">
+                            <img style='border: 1px solid grey' src="/images/products/${fullProduct.image}" alt="">
+                        </figure>
+                        <section class="col-6 info">
+                            <p class="product-detail-price">
+                                $${fullProduct.price}
+                            </p>
+                            <p>${fullProduct.name}</p>
+                        </section>
+                        <section class="col-3">
+                            <p>Cantidad: ${prod.quantity}</p>
+                        </section>
+                    </section>
+                </div>
+                <hr>`
+
+                productList.innerHTML += productElement;
+                return fullProduct.price * prod.quantity;
+            }
+
+            const promises = []
+
+            for (const prod of cart) {
+                promises.push(renderProduct(prod));
+            }
+
+            Promise.all(promises).then((prices) => {
+                const totalPrice = prices.reduce((acc, price) => {
+                    return acc + price;
+                }, 0);
+                totalPriceElement.innerText = totalPrice;
+            })
+
+            const comprar = document.getElementById("comprar-form")
+            comprar.onsubmit = async (event) => {
+                event.preventDefault();
+
+                const response = await fetch("/api/orders/checkout", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cart,
+                        userId
+                    })
+                })
+                const data = await response.json();
+
+                window.location = data.init_url;
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
